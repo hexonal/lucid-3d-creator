@@ -4,6 +4,7 @@ import ChatInput from './ChatInput';
 import { Button } from '@/components/ui/button';
 import { RefreshCcw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { sendChatMessage } from '@/services/api';
 
 interface Message {
   id: string;
@@ -15,8 +16,6 @@ interface Message {
 interface ChatPanelProps {
   onSceneUpdate?: (scene: any) => void;
 }
-
-const API_ENDPOINT = 'http://167.114.211.191:8000';
 
 const ChatPanel = ({ onSceneUpdate }: ChatPanelProps) => {
   const { toast } = useToast();
@@ -60,38 +59,30 @@ const ChatPanel = ({ onSceneUpdate }: ChatPanelProps) => {
           }))
         : [];
 
-      // Make API call to the endpoint
-      const response = await fetch(`${API_ENDPOINT}/api/chat/message`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message,
-          context,
-          conversation_id: 'default' // You might want to manage conversation IDs
-        }),
-      });
+      console.log("Sending chat message with context:", { message, context });
       
-      if (!response.ok) {
-        throw new Error(`API responded with status: ${response.status}`);
+      // Use the API service instead of direct fetch
+      const response = await sendChatMessage('default', message, { context });
+      
+      console.log("API response:", response);
+      
+      if (!response || response.code !== 200) {
+        throw new Error(`API responded with error: ${response?.message || 'Unknown error'}`);
       }
-      
-      const data = await response.json();
       
       // Add the AI response
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
         isUser: false,
-        content: data.data.response || '服务器返回了空响应',
+        content: response.data?.response || '服务器返回了空响应',
         timestamp: new Date().toLocaleTimeString()
       };
       
       setMessages((prevMessages) => [...prevMessages, aiResponse]);
       
       // Update scene if response contains scene data
-      if (onSceneUpdate && data.data.scene_update) {
-        onSceneUpdate(data.data.scene_update);
+      if (onSceneUpdate && response.data?.scene_update) {
+        onSceneUpdate(response.data.scene_update);
       }
     } catch (error) {
       console.error('API call failed:', error);
