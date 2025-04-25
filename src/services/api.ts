@@ -4,21 +4,8 @@ import { ApiResponse, ChatHistoryResponse, ChatMessageResponse, GeneratedScene, 
 // Original API URL
 const ORIGINAL_API_URL = 'http://167.114.211.191:8000';
 
-// Function to handle CORS issue by using a CORS proxy
-function createProxiedUrl(endpoint: string): string {
-  // In development environment, use an alternative approach
-  const isLocalDevelopment = window.location.hostname === 'localhost';
-  
-  if (isLocalDevelopment) {
-    // Use cors-anywhere proxy
-    return `https://cors-anywhere.herokuapp.com/${ORIGINAL_API_URL}${endpoint}`;
-    
-    // Alternatives if the above doesn't work
-    // return `https://api.allorigins.win/raw?url=${encodeURIComponent(`${ORIGINAL_API_URL}${endpoint}`)}`;
-    // return `https://corsproxy.io/?${encodeURIComponent(`${ORIGINAL_API_URL}${endpoint}`)}`;
-  }
-  
-  // In production, use the direct API URL
+// Function to create API URL
+function createApiUrl(endpoint: string): string {
   return `${ORIGINAL_API_URL}${endpoint}`;
 }
 
@@ -33,21 +20,20 @@ async function safeParseJson(response: Response): Promise<any> {
   }
 }
 
-// Common fetch method with error handling and CORS handling
-async function fetchWithCorsHandling(url: string, options: RequestInit = {}): Promise<any> {
+// Common fetch method with error handling
+async function fetchWithErrorHandling(url: string, options: RequestInit = {}): Promise<any> {
   try {
-    // Add common headers
+    // Add common headers and disable CORS checks
     const headers = {
       'Content-Type': 'application/json',
-      'Origin': window.location.origin,
       ...options.headers
     };
     
     const response = await fetch(url, {
       ...options,
       headers,
-      // Disable CORS mode in development for direct requests
-      mode: window.location.hostname === 'localhost' ? 'cors' : 'cors'
+      mode: 'no-cors', // 禁用 CORS 检查
+      credentials: 'omit' // 不发送 cookies
     });
     
     return await safeParseJson(response);
@@ -62,18 +48,18 @@ async function fetchWithCorsHandling(url: string, options: RequestInit = {}): Pr
 }
 
 export async function generateScene(description: string, context: any[] = []): Promise<ApiResponse<GeneratedScene>> {
-  const url = createProxiedUrl('/api/generate-scene');
+  const url = createApiUrl('/api/generate-scene');
   
-  return fetchWithCorsHandling(url, {
+  return fetchWithErrorHandling(url, {
     method: 'POST',
     body: JSON.stringify({ description, context })
   });
 }
 
 export async function optimizeScene(scene: any): Promise<ApiResponse<OptimizationResponse>> {
-  const url = createProxiedUrl('/api/scenes/optimize');
+  const url = createApiUrl('/api/scenes/optimize');
   
-  return fetchWithCorsHandling(url, {
+  return fetchWithErrorHandling(url, {
     method: 'POST',
     body: JSON.stringify({ scene })
   });
@@ -84,30 +70,30 @@ export async function sendChatMessage(
   message: string, 
   context: any = {}
 ): Promise<ApiResponse<ChatMessageResponse>> {
-  const url = createProxiedUrl('/api/chat/message');
+  const url = createApiUrl('/api/chat/message');
   
   console.log("尝试发送聊天消息到:", url);
   
-  return fetchWithCorsHandling(url, {
+  return fetchWithErrorHandling(url, {
     method: 'POST',
     body: JSON.stringify({ conversation_id: conversationId, message, context })
   });
 }
 
 export async function getChatHistory(conversationId: string): Promise<ApiResponse<ChatHistoryResponse>> {
-  const url = createProxiedUrl(`/api/chat/history/${conversationId}`);
+  const url = createApiUrl(`/api/chat/history/${conversationId}`);
   
-  return fetchWithCorsHandling(url, {
+  return fetchWithErrorHandling(url, {
     method: 'GET'
   });
 }
 
 export async function getSystemHealth(): Promise<ApiResponse<HealthResponse>> {
-  const url = createProxiedUrl('/api/health');
+  const url = createApiUrl('/api/health');
   
   console.log("检查系统健康状态:", url);
   
-  return fetchWithCorsHandling(url, {
+  return fetchWithErrorHandling(url, {
     method: 'GET'
   });
 }
