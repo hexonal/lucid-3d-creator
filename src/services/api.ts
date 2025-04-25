@@ -6,16 +6,16 @@ const ORIGINAL_API_URL = 'http://167.114.211.191:8000';
 
 // Function to handle CORS issue by using a CORS proxy
 function createProxiedUrl(endpoint: string): string {
-  // In development environment, try to use a CORS proxy
+  // In development environment, use an alternative approach
   const isLocalDevelopment = window.location.hostname === 'localhost';
   
   if (isLocalDevelopment) {
-    // Direct access to API (if CORS is configured on server)
-    return `${ORIGINAL_API_URL}${endpoint}`;
+    // Use cors-anywhere proxy
+    return `https://cors-anywhere.herokuapp.com/${ORIGINAL_API_URL}${endpoint}`;
     
-    // If direct access fails, you could uncomment one of these:
-    // return `https://cors-anywhere.herokuapp.com/${ORIGINAL_API_URL}${endpoint}`;
+    // Alternatives if the above doesn't work
     // return `https://api.allorigins.win/raw?url=${encodeURIComponent(`${ORIGINAL_API_URL}${endpoint}`)}`;
+    // return `https://corsproxy.io/?${encodeURIComponent(`${ORIGINAL_API_URL}${endpoint}`)}`;
   }
   
   // In production, use the direct API URL
@@ -33,34 +33,50 @@ async function safeParseJson(response: Response): Promise<any> {
   }
 }
 
+// Common fetch method with error handling and CORS handling
+async function fetchWithCorsHandling(url: string, options: RequestInit = {}): Promise<any> {
+  try {
+    // Add common headers
+    const headers = {
+      'Content-Type': 'application/json',
+      'Origin': window.location.origin,
+      ...options.headers
+    };
+    
+    const response = await fetch(url, {
+      ...options,
+      headers,
+      // Disable CORS mode in development for direct requests
+      mode: window.location.hostname === 'localhost' ? 'cors' : 'cors'
+    });
+    
+    return await safeParseJson(response);
+  } catch (error) {
+    console.error('API请求失败:', error);
+    return {
+      code: 500,
+      message: `请求失败: ${error instanceof Error ? error.message : '未知错误'}`,
+      data: null
+    };
+  }
+}
+
 export async function generateScene(description: string, context: any[] = []): Promise<ApiResponse<GeneratedScene>> {
   const url = createProxiedUrl('/api/generate-scene');
   
-  const response = await fetch(url, {
+  return fetchWithCorsHandling(url, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Origin': window.location.origin
-    },
     body: JSON.stringify({ description, context })
   });
-  
-  return safeParseJson(response);
 }
 
 export async function optimizeScene(scene: any): Promise<ApiResponse<OptimizationResponse>> {
   const url = createProxiedUrl('/api/scenes/optimize');
   
-  const response = await fetch(url, {
+  return fetchWithCorsHandling(url, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Origin': window.location.origin
-    },
     body: JSON.stringify({ scene })
   });
-  
-  return safeParseJson(response);
 }
 
 export async function sendChatMessage(
@@ -72,37 +88,18 @@ export async function sendChatMessage(
   
   console.log("尝试发送聊天消息到:", url);
   
-  try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Origin': window.location.origin
-      },
-      body: JSON.stringify({ conversation_id: conversationId, message, context })
-    });
-    
-    return safeParseJson(response);
-  } catch (error) {
-    console.error("发送聊天消息失败:", error);
-    return {
-      code: 500,
-      message: "无法连接到服务器，请检查网络连接或稍后再试",
-      data: null
-    };
-  }
+  return fetchWithCorsHandling(url, {
+    method: 'POST',
+    body: JSON.stringify({ conversation_id: conversationId, message, context })
+  });
 }
 
 export async function getChatHistory(conversationId: string): Promise<ApiResponse<ChatHistoryResponse>> {
   const url = createProxiedUrl(`/api/chat/history/${conversationId}`);
   
-  const response = await fetch(url, {
-    headers: {
-      'Origin': window.location.origin
-    }
+  return fetchWithCorsHandling(url, {
+    method: 'GET'
   });
-  
-  return safeParseJson(response);
 }
 
 export async function getSystemHealth(): Promise<ApiResponse<HealthResponse>> {
@@ -110,20 +107,7 @@ export async function getSystemHealth(): Promise<ApiResponse<HealthResponse>> {
   
   console.log("检查系统健康状态:", url);
   
-  try {
-    const response = await fetch(url, {
-      headers: {
-        'Origin': window.location.origin
-      }
-    });
-    
-    return safeParseJson(response);
-  } catch (error) {
-    console.error("检查系统健康状态失败:", error);
-    return {
-      code: 500,
-      message: "无法连接到服务器，请检查网络连接",
-      data: null
-    };
-  }
+  return fetchWithCorsHandling(url, {
+    method: 'GET'
+  });
 }
