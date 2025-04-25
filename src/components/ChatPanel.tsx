@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import ChatMessage from './ChatMessage';
 import ChatInput from './ChatInput';
@@ -59,15 +60,15 @@ const ChatPanel = ({ onSceneUpdate }: ChatPanelProps) => {
           }))
         : [];
 
-      console.log("Sending chat message with context:", { message, context });
+      console.log("发送聊天消息，上下文:", { message, context });
       
       // Use the API service instead of direct fetch
       const response = await sendChatMessage('default', message, { context });
       
-      console.log("API response:", response);
+      console.log("API 响应:", response);
       
       if (!response || response.code !== 200) {
-        throw new Error(`API responded with error: ${response?.message || 'Unknown error'}`);
+        throw new Error(`API 返回错误: ${response?.message || '未知错误'}`);
       }
       
       // Add the AI response
@@ -85,7 +86,7 @@ const ChatPanel = ({ onSceneUpdate }: ChatPanelProps) => {
         onSceneUpdate(response.data.scene_update);
       }
     } catch (error) {
-      console.error('API call failed:', error);
+      console.error('API调用失败:', error);
       
       // Add error message
       const errorMessage: Message = {
