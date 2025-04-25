@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
 import { OrbitControls, Environment, Grid, useGLTF, Preload, Center } from '@react-three/drei';
@@ -8,6 +7,15 @@ import { RotateCw, ZoomIn, ZoomOut, Move } from 'lucide-react';
 
 interface SceneProps {
   scene?: any;
+}
+
+// Extend the Window interface to include our custom properties
+declare global {
+  interface Window {
+    resetView?: () => void;
+    zoomIn?: () => void;
+    zoomOut?: () => void;
+  }
 }
 
 // Basic model component
@@ -143,25 +151,35 @@ const SceneController = () => {
   const { camera } = useThree();
   
   // Expose functions globally for the UI buttons to call
-  window.resetView = () => {
-    camera.position.set(5, 5, 5);
-    camera.lookAt(0, 0, 0);
-  };
-  
-  window.zoomIn = () => {
-    camera.position.lerp(camera.position.clone().multiplyScalar(0.8), 0.5);
-  };
-  
-  window.zoomOut = () => {
-    camera.position.lerp(camera.position.clone().multiplyScalar(1.2), 0.5);
-  };
+  useEffect(() => {
+    // Define the functions on the window object
+    window.resetView = () => {
+      camera.position.set(5, 5, 5);
+      camera.lookAt(0, 0, 0);
+    };
+    
+    window.zoomIn = () => {
+      camera.position.lerp(camera.position.clone().multiplyScalar(0.8), 0.5);
+    };
+    
+    window.zoomOut = () => {
+      camera.position.lerp(camera.position.clone().multiplyScalar(1.2), 0.5);
+    };
+    
+    // Clean up when component unmounts
+    return () => {
+      delete window.resetView;
+      delete window.zoomIn;
+      delete window.zoomOut;
+    };
+  }, [camera]);
   
   return null; // This component doesn't render anything
 };
 
 const SceneViewer = ({ scene }: SceneProps) => {
   const handleResetView = () => {
-    // Call the function exposed on the window
+    // Use optional chaining to safely call the function
     window.resetView?.();
   };
   
