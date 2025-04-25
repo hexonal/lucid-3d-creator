@@ -121,7 +121,7 @@ const CameraController = () => {
   return <OrbitControls enableDamping dampingFactor={0.1} enableZoom={true} enablePan={true} args={[camera, gl.domElement]} />;
 };
 
-// Scene controls component - renamed for clarity and to avoid any potential conflicts
+// Scene controls component - renamed for clarity
 const SceneControlPanel = () => {
   const { camera, scene } = useThree();
   
