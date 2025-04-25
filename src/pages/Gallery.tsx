@@ -6,13 +6,14 @@ import { useToast } from '@/hooks/use-toast';
 import { SceneData } from '@/types/api';
 import SceneCard from '@/components/SceneCard';
 import { generateScene, getSystemHealth } from '@/services/api';
-import { Health } from 'lucide-react';
+import { InfoIcon } from 'lucide-react';
 import { 
   Pagination, 
   PaginationContent, 
   PaginationItem, 
   PaginationNext, 
-  PaginationPrevious 
+  PaginationPrevious,
+  PaginationLink
 } from '@/components/ui/pagination';
 
 const MOCK_SCENES: SceneData[] = [
@@ -124,7 +125,7 @@ const Gallery = () => {
           <div className="flex items-center space-x-2 mt-4 md:mt-0">
             {systemStatus && (
               <div className="flex items-center mr-4">
-                <Health className="h-4 w-4 mr-1" />
+                <InfoIcon className="h-4 w-4 mr-1" />
                 <span className="text-sm">
                   系统状态: 
                   <span className={`font-medium ${systemStatus === 'healthy' ? 'text-green-500' : 'text-red-500'}`}>
@@ -163,13 +164,33 @@ const Gallery = () => {
               <Pagination className="mb-8">
                 <PaginationContent>
                   <PaginationItem>
-                    <PaginationPrevious onClick={handlePreviousPage} disabled={page === 1} />
+                    <Button 
+                      onClick={handlePreviousPage} 
+                      disabled={page === 1}
+                      variant="outline"
+                      size="sm"
+                      className="gap-1 pl-2.5"
+                    >
+                      <span className="flex items-center">
+                        <span className="mr-1">←</span> 上一页
+                      </span>
+                    </Button>
                   </PaginationItem>
                   <PaginationItem className="px-4">
                     第 {page} 页，共 {totalPages} 页
                   </PaginationItem>
                   <PaginationItem>
-                    <PaginationNext onClick={handleNextPage} disabled={page === totalPages} />
+                    <Button 
+                      onClick={handleNextPage} 
+                      disabled={page === totalPages}
+                      variant="outline"
+                      size="sm"
+                      className="gap-1 pr-2.5"
+                    >
+                      <span className="flex items-center">
+                        下一页 <span className="ml-1">→</span>
+                      </span>
+                    </Button>
                   </PaginationItem>
                 </PaginationContent>
               </Pagination>
