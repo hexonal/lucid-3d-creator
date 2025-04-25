@@ -121,8 +121,8 @@ const CameraController = () => {
   return <OrbitControls enableDamping dampingFactor={0.1} enableZoom={true} enablePan={true} args={[camera, gl.domElement]} />;
 };
 
-// Scene controls component - 修复 Circle 图标冲突
-const SceneControls = () => {
+// Scene controls component - renamed for clarity and to avoid any potential conflicts
+const SceneControlPanel = () => {
   const { camera, scene } = useThree();
   
   const handleResetView = () => {
@@ -171,7 +171,7 @@ const SceneViewer = ({ scene }: SceneProps) => {
         <Grid infiniteGrid cellSize={1} sectionSize={3} fadeDistance={50} />
         <Environment preset="city" />
         <Preload all />
-        <SceneControls />
+        <SceneControlPanel />
       </Canvas>
     </div>
   );
