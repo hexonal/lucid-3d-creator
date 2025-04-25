@@ -1,5 +1,5 @@
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
 import { OrbitControls, Environment, Grid, useGLTF, Preload, Center } from '@react-three/drei';
 import { Mesh, Group } from 'three';
@@ -121,41 +121,60 @@ const CameraController = () => {
   return <OrbitControls enableDamping dampingFactor={0.1} enableZoom={true} enablePan={true} args={[camera, gl.domElement]} />;
 };
 
-// Scene controls component - renamed for clarity
-const SceneControlPanel = () => {
-  const { camera, scene } = useThree();
-  
-  const handleResetView = () => {
-    camera.position.set(5, 5, 5);
-    camera.lookAt(0, 0, 0);
-  };
-  
-  const handleZoomIn = () => {
-    camera.position.lerp(camera.position.clone().multiplyScalar(0.8), 0.5);
-  };
-  
-  const handleZoomOut = () => {
-    camera.position.lerp(camera.position.clone().multiplyScalar(1.2), 0.5);
-  };
-
+// This component is moved OUTSIDE the Canvas to avoid Circle namespace conflict
+const SceneControlButtons = ({ onReset, onZoomIn, onZoomOut }) => {
   return (
-    <div className="scene-controls">
-      <button onClick={handleResetView} className="scene-control-button">
+    <div className="absolute bottom-4 right-4 flex gap-2">
+      <Button onClick={onReset} size="sm" variant="secondary" className="rounded-full p-2">
         <RotateCw className="h-4 w-4" />
-      </button>
-      <button onClick={handleZoomIn} className="scene-control-button">
+      </Button>
+      <Button onClick={onZoomIn} size="sm" variant="secondary" className="rounded-full p-2">
         <ZoomIn className="h-4 w-4" />
-      </button>
-      <button onClick={handleZoomOut} className="scene-control-button">
+      </Button>
+      <Button onClick={onZoomOut} size="sm" variant="secondary" className="rounded-full p-2">
         <ZoomOut className="h-4 w-4" />
-      </button>
+      </Button>
     </div>
   );
 };
 
+// THREE.js scene controller - no UI components
+const SceneController = () => {
+  const { camera } = useThree();
+  
+  // Expose functions globally for the UI buttons to call
+  window.resetView = () => {
+    camera.position.set(5, 5, 5);
+    camera.lookAt(0, 0, 0);
+  };
+  
+  window.zoomIn = () => {
+    camera.position.lerp(camera.position.clone().multiplyScalar(0.8), 0.5);
+  };
+  
+  window.zoomOut = () => {
+    camera.position.lerp(camera.position.clone().multiplyScalar(1.2), 0.5);
+  };
+  
+  return null; // This component doesn't render anything
+};
+
 const SceneViewer = ({ scene }: SceneProps) => {
+  const handleResetView = () => {
+    // Call the function exposed on the window
+    window.resetView?.();
+  };
+  
+  const handleZoomIn = () => {
+    window.zoomIn?.();
+  };
+  
+  const handleZoomOut = () => {
+    window.zoomOut?.();
+  };
+
   return (
-    <div className="scene-viewer-container">
+    <div className="scene-viewer-container relative">
       <Canvas shadows>
         <CameraController />
         <ambientLight intensity={0.5} />
@@ -171,8 +190,15 @@ const SceneViewer = ({ scene }: SceneProps) => {
         <Grid infiniteGrid cellSize={1} sectionSize={3} fadeDistance={50} />
         <Environment preset="city" />
         <Preload all />
-        <SceneControlPanel />
+        <SceneController />
       </Canvas>
+      
+      {/* UI controls placed outside the Canvas */}
+      <SceneControlButtons 
+        onReset={handleResetView}
+        onZoomIn={handleZoomIn}
+        onZoomOut={handleZoomOut}
+      />
     </div>
   );
 };
