@@ -1,7 +1,7 @@
 
 import { ApiResponse, ChatHistoryResponse, ChatMessageResponse, GeneratedScene, HealthResponse, OptimizationResponse } from "@/types/api";
 
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = 'http://167.114.211.191:8000';
 
 export async function generateScene(description: string, context: any[] = []): Promise<ApiResponse<GeneratedScene>> {
   const response = await fetch(`${API_BASE_URL}/api/generate-scene`, {
