@@ -1,6 +1,7 @@
 
 import { NavLink } from "react-router-dom";
 import { Box } from "lucide-react";
+import { ROUTES } from "@/routes/routes";
 
 const Header = () => {
   return (
@@ -15,14 +16,11 @@ const Header = () => {
         </div>
         
         <nav className="hidden md:flex items-center space-x-6">
-          <NavLink to="/" className="text-gray-600 hover:text-sceneflow-primary transition-colors">
+          <NavLink to={ROUTES.HOME} className="text-gray-600 hover:text-sceneflow-primary transition-colors">
             首页
           </NavLink>
-          <NavLink to="/gallery" className="text-gray-600 hover:text-sceneflow-primary transition-colors">
+          <NavLink to={ROUTES.GALLERY} className="text-gray-600 hover:text-sceneflow-primary transition-colors">
             场景库
-          </NavLink>
-          <NavLink to="/about" className="text-gray-600 hover:text-sceneflow-primary transition-colors">
-            关于
           </NavLink>
         </nav>
       </div>
@@ -31,4 +29,3 @@ const Header = () => {
 };
 
 export default Header;
-

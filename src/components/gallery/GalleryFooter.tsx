@@ -10,12 +10,6 @@ const GalleryFooter = () => {
           </div>
           <p className="text-gray-300 text-sm">AI驱动的3D场景生成系统</p>
         </div>
-        
-        <div className="flex space-x-6">
-          <a href="/about" className="text-gray-300 hover:text-white text-sm">关于我们</a>
-          <a href="/privacy" className="text-gray-300 hover:text-white text-sm">隐私政策</a>
-          <a href="/terms" className="text-gray-300 hover:text-white text-sm">使用条款</a>
-        </div>
       </div>
     </footer>
   );
