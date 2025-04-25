@@ -1,20 +1,13 @@
-
 import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { SceneData } from '@/types/api';
-import SceneCard from '@/components/SceneCard';
-import { generateScene, getSystemHealth } from '@/services/api';
-import { InfoIcon } from 'lucide-react';
-import { 
-  Pagination, 
-  PaginationContent, 
-  PaginationItem, 
-  PaginationNext, 
-  PaginationPrevious,
-  PaginationLink
-} from '@/components/ui/pagination';
+import { getSystemHealth } from '@/services/api';
+import SystemStatus from '@/components/gallery/SystemStatus';
+import SceneGrid from '@/components/gallery/SceneGrid';
+import PaginationControls from '@/components/gallery/PaginationControls';
+import GalleryFooter from '@/components/gallery/GalleryFooter';
 
 const MOCK_SCENES: SceneData[] = [
   {
@@ -123,18 +116,7 @@ const Gallery = () => {
           </div>
           
           <div className="flex items-center space-x-2 mt-4 md:mt-0">
-            {systemStatus && (
-              <div className="flex items-center mr-4">
-                <InfoIcon className="h-4 w-4 mr-1" />
-                <span className="text-sm">
-                  系统状态: 
-                  <span className={`font-medium ${systemStatus === 'healthy' ? 'text-green-500' : 'text-red-500'}`}>
-                    {systemStatus === 'healthy' ? ' 正常' : ' 异常'}
-                  </span>
-                </span>
-              </div>
-            )}
-            
+            <SystemStatus status={systemStatus} />
             <Button 
               onClick={handleRefresh}
               disabled={isLoading}
@@ -146,55 +128,20 @@ const Gallery = () => {
           </div>
         </div>
         
-        {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {Array(4).fill(0).map((_, index) => (
-              <div key={index} className="h-60 bg-gray-100 rounded-lg animate-pulse"></div>
-            ))}
-          </div>
-        ) : scenes.length > 0 ? (
+        {scenes.length > 0 ? (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-              {visibleScenes.map((scene, index) => (
-                <SceneCard key={startIndex + index} scene={scene} index={startIndex + index} />
-              ))}
-            </div>
+            <SceneGrid 
+              scenes={visibleScenes} 
+              startIndex={startIndex}
+              isLoading={isLoading}
+            />
             
-            {totalPages > 1 && (
-              <Pagination className="mb-8">
-                <PaginationContent>
-                  <PaginationItem>
-                    <Button 
-                      onClick={handlePreviousPage} 
-                      disabled={page === 1}
-                      variant="outline"
-                      size="sm"
-                      className="gap-1 pl-2.5"
-                    >
-                      <span className="flex items-center">
-                        <span className="mr-1">←</span> 上一页
-                      </span>
-                    </Button>
-                  </PaginationItem>
-                  <PaginationItem className="px-4">
-                    第 {page} 页，共 {totalPages} 页
-                  </PaginationItem>
-                  <PaginationItem>
-                    <Button 
-                      onClick={handleNextPage} 
-                      disabled={page === totalPages}
-                      variant="outline"
-                      size="sm"
-                      className="gap-1 pr-2.5"
-                    >
-                      <span className="flex items-center">
-                        下一页 <span className="ml-1">→</span>
-                      </span>
-                    </Button>
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
-            )}
+            <PaginationControls
+              page={page}
+              totalPages={totalPages}
+              onPreviousPage={handlePreviousPage}
+              onNextPage={handleNextPage}
+            />
           </>
         ) : (
           <div className="text-center py-16">
@@ -204,23 +151,7 @@ const Gallery = () => {
         )}
       </main>
       
-      <footer className="bg-sceneflow-dark text-white py-8 px-4">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center">
-          <div className="mb-4 md:mb-0">
-            <div className="flex items-center mb-2">
-              <h3 className="text-xl font-bold mr-2">SceneFlow</h3>
-              <span className="text-xs bg-sceneflow-primary px-2 py-0.5 rounded-full">Beta</span>
-            </div>
-            <p className="text-gray-300 text-sm">AI驱动的3D场景生成系统</p>
-          </div>
-          
-          <div className="flex space-x-6">
-            <a href="/about" className="text-gray-300 hover:text-white text-sm">关于我们</a>
-            <a href="/privacy" className="text-gray-300 hover:text-white text-sm">隐私政策</a>
-            <a href="/terms" className="text-gray-300 hover:text-white text-sm">使用条款</a>
-          </div>
-        </div>
-      </footer>
+      <GalleryFooter />
     </div>
   );
 };
