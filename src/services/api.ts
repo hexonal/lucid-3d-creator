@@ -23,10 +23,9 @@ async function safeParseJson(response: Response): Promise<any> {
 // Common fetch method with error handling
 async function fetchWithErrorHandling(url: string, options: RequestInit = {}): Promise<any> {
   try {
-    // Add common headers with proper Content-Type and CORS settings
+    // Ensure proper Content-Type header is set
     const headers = {
       'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*',  // 允许所有域的请求
       ...options.headers
     };
     

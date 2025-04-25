@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ROUTES } from "./routes/routes";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import Gallery from "./pages/Gallery";
 
 const queryClient = new QueryClient();
 
@@ -18,6 +19,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path={ROUTES.HOME} element={<Index />} />
+          <Route path={ROUTES.GALLERY} element={<Gallery />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
@@ -26,4 +28,3 @@ const App = () => (
 );
 
 export default App;
-
