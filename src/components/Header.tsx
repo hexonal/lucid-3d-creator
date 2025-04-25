@@ -25,15 +25,10 @@ const Header = () => {
             关于
           </NavLink>
         </nav>
-        
-        <div className="flex items-center space-x-4">
-          <button className="hidden md:block px-4 py-1.5 bg-sceneflow-primary text-white rounded-full hover:bg-sceneflow-secondary transition-colors duration-300">
-            登录
-          </button>
-        </div>
       </div>
     </header>
   );
 };
 
 export default Header;
+
