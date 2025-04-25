@@ -19,9 +19,6 @@ const Header = () => {
           <NavLink to={ROUTES.HOME} className="text-gray-600 hover:text-sceneflow-primary transition-colors">
             首页
           </NavLink>
-          <NavLink to={ROUTES.GALLERY} className="text-gray-600 hover:text-sceneflow-primary transition-colors">
-            场景库
-          </NavLink>
         </nav>
       </div>
     </header>
@@ -29,3 +26,4 @@ const Header = () => {
 };
 
 export default Header;
+
