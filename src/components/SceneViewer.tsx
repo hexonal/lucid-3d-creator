@@ -121,6 +121,7 @@ const CameraController = () => {
   return <OrbitControls enableDamping dampingFactor={0.1} enableZoom={true} enablePan={true} args={[camera, gl.domElement]} />;
 };
 
+// Scene controls component - separate from Circle icon conflicts
 const SceneControls = () => {
   const { camera, scene } = useThree();
   
