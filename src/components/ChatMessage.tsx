@@ -1,6 +1,6 @@
 
 import { type ReactNode } from 'react';
-import { Cube, User } from 'lucide-react';
+import { Box, User } from 'lucide-react';
 
 interface ChatMessageProps {
   isUser: boolean;
@@ -20,7 +20,7 @@ const ChatMessage = ({ isUser, content, timestamp }: ChatMessageProps) => {
 
     return (
       <div className="w-8 h-8 rounded-full bg-sceneflow-primary flex items-center justify-center">
-        <Cube className="w-5 h-5 text-white" />
+        <Box className="w-5 h-5 text-white" />
       </div>
     );
   };
