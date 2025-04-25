@@ -2,7 +2,7 @@
 import { ApiResponse, ChatHistoryResponse, ChatMessageResponse, GeneratedScene, HealthResponse, OptimizationResponse } from "@/types/api";
 
 // Original API URL
-const ORIGINAL_API_URL = 'http://167.114.211.191:8000';
+const ORIGINAL_API_URL = 'http://127.0.0.1:1';
 
 // Function to create API URL
 function createApiUrl(endpoint: string): string {
@@ -28,7 +28,7 @@ async function fetchWithErrorHandling(url: string, options: RequestInit = {}): P
       'Content-Type': 'application/json',
       ...options.headers
     };
-    
+
     const response = await fetch(url, {
       ...options,
       headers,
@@ -45,7 +45,7 @@ async function fetchWithErrorHandling(url: string, options: RequestInit = {}): P
         data: null
       };
     }
-    
+
     return await safeParseJson(response);
   } catch (error) {
     console.error('API请求失败:', error);
@@ -59,7 +59,7 @@ async function fetchWithErrorHandling(url: string, options: RequestInit = {}): P
 
 export async function generateScene(description: string, context: any[] = []): Promise<ApiResponse<GeneratedScene>> {
   const url = createApiUrl('/api/generate-scene');
-  
+
   return fetchWithErrorHandling(url, {
     method: 'POST',
     body: JSON.stringify({ description, context })
@@ -68,7 +68,7 @@ export async function generateScene(description: string, context: any[] = []): P
 
 export async function optimizeScene(scene: any): Promise<ApiResponse<OptimizationResponse>> {
   const url = createApiUrl('/api/scenes/optimize');
-  
+
   return fetchWithErrorHandling(url, {
     method: 'POST',
     body: JSON.stringify({ scene })
@@ -76,14 +76,14 @@ export async function optimizeScene(scene: any): Promise<ApiResponse<Optimizatio
 }
 
 export async function sendChatMessage(
-  conversationId: string, 
-  message: string, 
+  conversationId: string,
+  message: string,
   context: any = {}
 ): Promise<ApiResponse<ChatMessageResponse>> {
   const url = createApiUrl('/api/chat/message');
-  
+
   console.log("尝试发送聊天消息到:", url);
-  
+
   return fetchWithErrorHandling(url, {
     method: 'POST',
     body: JSON.stringify({ conversation_id: conversationId, message, context })
@@ -92,7 +92,7 @@ export async function sendChatMessage(
 
 export async function getChatHistory(conversationId: string): Promise<ApiResponse<ChatHistoryResponse>> {
   const url = createApiUrl(`/api/chat/history/${conversationId}`);
-  
+
   return fetchWithErrorHandling(url, {
     method: 'GET'
   });
@@ -100,9 +100,9 @@ export async function getChatHistory(conversationId: string): Promise<ApiRespons
 
 export async function getSystemHealth(): Promise<ApiResponse<HealthResponse>> {
   const url = createApiUrl('/api/health');
-  
+
   console.log("检查系统健康状态:", url);
-  
+
   return fetchWithErrorHandling(url, {
     method: 'GET'
   });
