@@ -4,6 +4,7 @@ import ChatMessage from './ChatMessage';
 import ChatInput from './ChatInput';
 import { Button } from '@/components/ui/button';
 import { RefreshCcw } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface Message {
   id: string;
@@ -16,7 +17,10 @@ interface ChatPanelProps {
   onSceneUpdate?: (scene: any) => void;
 }
 
+const API_ENDPOINT = 'http://167.114.211.191:8000';
+
 const ChatPanel = ({ onSceneUpdate }: ChatPanelProps) => {
+  const { toast } = useToast();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -48,25 +52,69 @@ const ChatPanel = ({ onSceneUpdate }: ChatPanelProps) => {
     setMessages((prevMessages) => [...prevMessages, newUserMessage]);
     setIsProcessing(true);
     
-    // Simulate AI response (in a real app, this would be an API call)
-    setTimeout(() => {
+    try {
+      // Get previous messages for context (excluding the welcome message)
+      const context = messages.length > 1 
+        ? messages.slice(1).map(msg => ({
+            role: msg.isUser ? 'user' : 'assistant',
+            content: msg.content
+          }))
+        : [];
+
+      // Make API call to the endpoint
+      const response = await fetch(`${API_ENDPOINT}/api/chat/message`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message,
+          context,
+          conversation_id: 'default' // You might want to manage conversation IDs
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`API responded with status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      // Add the AI response
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
         isUser: false,
-        content: `正在生成场景: "${message}"... 这可能需要几秒钟时间.`,
+        content: data.data.response || '服务器返回了空响应',
         timestamp: new Date().toLocaleTimeString()
       };
       
       setMessages((prevMessages) => [...prevMessages, aiResponse]);
       
-      // Simulate scene generation
-      if (onSceneUpdate) {
-        // In a real app, we would generate a scene based on the message
-        onSceneUpdate({});
+      // Update scene if response contains scene data
+      if (onSceneUpdate && data.data.scene_update) {
+        onSceneUpdate(data.data.scene_update);
       }
+    } catch (error) {
+      console.error('API call failed:', error);
       
+      // Add error message
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        isUser: false,
+        content: '很抱歉，连接服务器时发生错误。请稍后再试。',
+        timestamp: new Date().toLocaleTimeString()
+      };
+      
+      setMessages((prevMessages) => [...prevMessages, errorMessage]);
+      
+      toast({
+        title: "连接错误",
+        description: "无法连接到场景生成服务器，请检查网络连接。",
+        variant: "destructive",
+      });
+    } finally {
       setIsProcessing(false);
-    }, 1500);
+    }
   };
 
   const handleResetChat = () => {
@@ -78,6 +126,11 @@ const ChatPanel = ({ onSceneUpdate }: ChatPanelProps) => {
         timestamp: new Date().toLocaleTimeString()
       }
     ]);
+    
+    // Reset scene if callback exists
+    if (onSceneUpdate) {
+      onSceneUpdate(null);
+    }
   };
 
   return (
