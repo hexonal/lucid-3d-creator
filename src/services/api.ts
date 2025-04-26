@@ -1,8 +1,7 @@
-
 import { ApiResponse, ChatHistoryResponse, ChatMessageResponse, GeneratedScene, HealthResponse, OptimizationResponse } from "@/types/api";
 
 // Original API URL
-const ORIGINAL_API_URL = 'http://127.0.0.1:1';
+const ORIGINAL_API_URL = 'http://127.0.0.1:8000';
 
 // Function to create API URL
 function createApiUrl(endpoint: string): string {
@@ -23,17 +22,17 @@ async function safeParseJson(response: Response): Promise<any> {
 // Common fetch method with error handling
 async function fetchWithErrorHandling(url: string, options: RequestInit = {}): Promise<any> {
   try {
-    // Ensure proper Content-Type header is set
+    // 确保设置正确的 Content-Type 头部
     const headers = {
       'Content-Type': 'application/json',
+      'Accept': 'application/json',
       ...options.headers
     };
 
     const response = await fetch(url, {
       ...options,
       headers,
-      // 允许跨域请求
-      mode: 'cors',
+      mode: 'cors', // 允许跨域请求
       credentials: 'omit' // 不发送 cookies
     });
     
@@ -86,7 +85,11 @@ export async function sendChatMessage(
 
   return fetchWithErrorHandling(url, {
     method: 'POST',
-    body: JSON.stringify({ conversation_id: conversationId, message, context })
+    body: JSON.stringify({ 
+      conversation_id: conversationId, 
+      message, 
+      context 
+    })
   });
 }
 
