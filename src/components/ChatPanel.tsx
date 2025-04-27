@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import ChatMessage from './ChatMessage';
 import ChatInput from './ChatInput';
@@ -15,9 +16,10 @@ interface Message {
 
 interface ChatPanelProps {
   onSceneUpdate?: (scene: any) => void;
+  onLoadingChange?: (isLoading: boolean) => void;
 }
 
-const ChatPanel = ({ onSceneUpdate }: ChatPanelProps) => {
+const ChatPanel = ({ onSceneUpdate, onLoadingChange }: ChatPanelProps) => {
   const { toast } = useToast();
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -50,6 +52,11 @@ const ChatPanel = ({ onSceneUpdate }: ChatPanelProps) => {
     setMessages((prevMessages) => [...prevMessages, newUserMessage]);
     setIsProcessing(true);
     
+    // Set loading state for scene generation
+    if (onLoadingChange) {
+      onLoadingChange(true);
+    }
+    
     try {
       const context = messages.length > 1 
         ? messages.slice(1).map(msg => ({
@@ -60,6 +67,11 @@ const ChatPanel = ({ onSceneUpdate }: ChatPanelProps) => {
 
       // First, try to generate a scene based on the message
       const sceneResponse = await generateScene(message, context);
+      
+      // Set loading state to false after scene generation completes
+      if (onLoadingChange) {
+        onLoadingChange(false);
+      }
       
       if (sceneResponse.code === 200 && sceneResponse.data?.scene) {
         console.log("场景生成成功:", sceneResponse.data.scene);
@@ -95,6 +107,11 @@ const ChatPanel = ({ onSceneUpdate }: ChatPanelProps) => {
       }
     } catch (error) {
       console.error('API调用失败:', error);
+      
+      // 确保错误时也重置加载状态
+      if (onLoadingChange) {
+        onLoadingChange(false);
+      }
       
       // Add error message
       const errorMessage: Message = {

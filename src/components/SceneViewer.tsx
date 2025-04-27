@@ -3,10 +3,13 @@ import { Canvas, useThree } from '@react-three/fiber';
 import { OrbitControls, Environment, Grid, useGLTF, Preload, Center } from '@react-three/drei';
 import { Mesh, Group } from 'three';
 import { Button } from '@/components/ui/button';
-import { RotateCw, ZoomIn, ZoomOut, Move } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Progress } from '@/components/ui/progress';
+import { RotateCw, ZoomIn, ZoomOut, RefreshCw } from 'lucide-react';
 
 interface SceneProps {
   scene?: any;
+  isLoading?: boolean;
 }
 
 // Extend the Window interface to include our custom properties
@@ -177,9 +180,33 @@ const SceneController = () => {
   return null; // This component doesn't render anything
 };
 
-const SceneViewer = ({ scene }: SceneProps) => {
+const LoadingOverlay = () => {
+  const [progress, setProgress] = useState(0);
+  
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 90) return prev; // Cap at 90% until actual loading completes
+        return prev + 10;
+      });
+    }, 300);
+    
+    return () => clearInterval(interval);
+  }, []);
+  
+  return (
+    <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm z-10">
+      <RefreshCw className="h-10 w-10 text-sceneflow-primary animate-spin mb-4" />
+      <h3 className="text-lg font-medium mb-2">场景生成中...</h3>
+      <div className="w-64">
+        <Progress value={progress} className="h-2" />
+      </div>
+    </div>
+  );
+};
+
+const SceneViewer = ({ scene, isLoading = false }: SceneProps) => {
   const handleResetView = () => {
-    // Use optional chaining to safely call the function
     window.resetView?.();
   };
   
@@ -193,6 +220,8 @@ const SceneViewer = ({ scene }: SceneProps) => {
 
   return (
     <div className="scene-viewer-container relative">
+      {isLoading && <LoadingOverlay />}
+      
       <Canvas shadows>
         <CameraController />
         <ambientLight intensity={0.5} />

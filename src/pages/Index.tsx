@@ -6,6 +6,7 @@ import ChatPanel from '@/components/ChatPanel';
 
 const Index = () => {
   const [currentScene, setCurrentScene] = useState<any>(null);
+  const [isSceneLoading, setIsSceneLoading] = useState(false);
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-tr from-gray-50 to-gray-100">
@@ -24,12 +25,15 @@ const Index = () => {
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-8">
           {/* Left Panel - Chat */}
           <div className="lg:col-span-2 h-[500px] md:h-[600px]">
-            <ChatPanel onSceneUpdate={setCurrentScene} />
+            <ChatPanel 
+              onSceneUpdate={setCurrentScene} 
+              onLoadingChange={setIsSceneLoading}
+            />
           </div>
           
           {/* Right Panel - 3D Viewer */}
           <div className="lg:col-span-3 h-[500px] md:h-[600px] bg-white rounded-lg shadow-md overflow-hidden">
-            <SceneViewer scene={currentScene} />
+            <SceneViewer scene={currentScene} isLoading={isSceneLoading} />
           </div>
         </div>
         
