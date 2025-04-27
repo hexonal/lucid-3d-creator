@@ -21,115 +21,53 @@ declare global {
   }
 }
 
-// Basic model component
-const SimpleRoom = () => {
-  const group = useRef<Group>(null);
-
-  useEffect(() => {
-    if (group.current) {
-      group.current.rotation.y = Math.PI / 8;
-    }
-  }, []);
-
+// 默认的空白场景组件
+const DefaultScene = () => {
   return (
     <Center>
-      <group ref={group}>
-        {/* Floor */}
+      <group>
+        {/* 地板 */}
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.5, 0]}>
           <planeGeometry args={[10, 10]} />
-          <meshStandardMaterial color="#f3f4f6" />
-        </mesh>
-        
-        {/* Wall 1 */}
-        <mesh position={[0, 2, -5]}>
-          <boxGeometry args={[10, 5, 0.1]} />
-          <meshStandardMaterial color="#e5e7eb" />
-        </mesh>
-        
-        {/* Wall 2 */}
-        <mesh position={[-5, 2, 0]} rotation={[0, Math.PI / 2, 0]}>
-          <boxGeometry args={[10, 5, 0.1]} />
-          <meshStandardMaterial color="#d1d5db" />
-        </mesh>
-        
-        {/* Table */}
-        <mesh position={[0, 0.4, 0]}>
-          <boxGeometry args={[1.5, 0.1, 0.8]} />
-          <meshStandardMaterial color="#9b87f5" />
-        </mesh>
-        
-        {/* Table legs */}
-        <mesh position={[0.65, 0, 0.25]}>
-          <boxGeometry args={[0.08, 0.8, 0.08]} />
-          <meshStandardMaterial color="#7E69AB" />
-        </mesh>
-        <mesh position={[-0.65, 0, 0.25]}>
-          <boxGeometry args={[0.08, 0.8, 0.08]} />
-          <meshStandardMaterial color="#7E69AB" />
-        </mesh>
-        <mesh position={[0.65, 0, -0.25]}>
-          <boxGeometry args={[0.08, 0.8, 0.08]} />
-          <meshStandardMaterial color="#7E69AB" />
-        </mesh>
-        <mesh position={[-0.65, 0, -0.25]}>
-          <boxGeometry args={[0.08, 0.8, 0.08]} />
-          <meshStandardMaterial color="#7E69AB" />
-        </mesh>
-        
-        {/* Chair */}
-        <mesh position={[0, 0.45, 1.2]}>
-          <boxGeometry args={[0.8, 0.1, 0.8]} />
-          <meshStandardMaterial color="#6E59A5" />
-        </mesh>
-        <mesh position={[0, 1, 1.6]}>
-          <boxGeometry args={[0.8, 1, 0.1]} />
-          <meshStandardMaterial color="#6E59A5" />
-        </mesh>
-        
-        {/* Chair legs */}
-        <mesh position={[0.35, 0, 1.5]}>
-          <boxGeometry args={[0.05, 0.9, 0.05]} />
-          <meshStandardMaterial color="#6E59A5" />
-        </mesh>
-        <mesh position={[-0.35, 0, 1.5]}>
-          <boxGeometry args={[0.05, 0.9, 0.05]} />
-          <meshStandardMaterial color="#6E59A5" />
-        </mesh>
-        <mesh position={[0.35, 0, 0.9]}>
-          <boxGeometry args={[0.05, 0.9, 0.05]} />
-          <meshStandardMaterial color="#6E59A5" />
-        </mesh>
-        <mesh position={[-0.35, 0, 0.9]}>
-          <boxGeometry args={[0.05, 0.9, 0.05]} />
-          <meshStandardMaterial color="#6E59A5" />
-        </mesh>
-        
-        {/* Plant */}
-        <mesh position={[3, 0.5, -3]}>
-          <cylinderGeometry args={[0.3, 0.4, 1, 16]} />
-          <meshStandardMaterial color="#D6BCFA" />
-        </mesh>
-        
-        {/* Plant leaves */}
-        <mesh position={[3, 1.1, -3]}>
-          <sphereGeometry args={[0.5, 16, 16, 0, Math.PI * 2, 0, Math.PI / 2]} />
-          <meshStandardMaterial color="#34D399" />
+          <meshStandardMaterial color="#f0f0f0" />
         </mesh>
       </group>
     </Center>
   );
 };
 
-// Camera controller
-const CameraController = () => {
-  const { camera, gl } = useThree();
-  
-  useEffect(() => {
-    camera.position.set(5, 5, 5);
-    camera.lookAt(0, 0, 0);
-  }, [camera]);
-  
-  return <OrbitControls enableDamping dampingFactor={0.1} enableZoom={true} enablePan={true} args={[camera, gl.domElement]} />;
+// 动态场景组件，根据 scene 属性渲染
+const DynamicScene = ({ scene }) => {
+  // 如果没有场景数据，渲染空白场景
+  if (!scene || !scene.objects || scene.objects.length === 0) {
+    return <DefaultScene />;
+  }
+
+  // TODO: 实现根据 scene 数据动态渲染模型的逻辑
+  return (
+    <Center>
+      <group>
+        {scene.objects.map((object, index) => (
+          <mesh 
+            key={object.id || index} 
+            position={[
+              object.position?.x || 0, 
+              object.position?.y || 0, 
+              object.position?.z || 0
+            ]}
+            scale={[
+              object.scale?.x || 1, 
+              object.scale?.y || 1, 
+              object.scale?.z || 1
+            ]}
+          >
+            <boxGeometry args={[1, 1, 1]} />
+            <meshStandardMaterial color={object.material?.color || "#808080"} />
+          </mesh>
+        ))}
+      </group>
+    </Center>
+  );
 };
 
 // This component is moved OUTSIDE the Canvas to avoid Circle namespace conflict
@@ -233,21 +171,39 @@ const SceneViewer = ({ scene, isLoading = false }: SceneProps) => {
           shadow-mapSize-height={1024}
         />
         <pointLight position={[-10, -10, -10]} intensity={0.5} />
-        <SimpleRoom />
+
+        <DynamicScene scene={scene} />
         <Grid infiniteGrid cellSize={1} sectionSize={3} fadeDistance={50} />
         <Environment preset="city" />
-        <Preload all />
-        <SceneController />
+        <OrbitControls />
       </Canvas>
       
-      {/* UI controls placed outside the Canvas */}
-      <SceneControlButtons 
-        onReset={handleResetView}
-        onZoomIn={handleZoomIn}
-        onZoomOut={handleZoomOut}
-      />
+      {/* 保持原有的场景控制按钮 */}
+      <div className="absolute bottom-4 right-4 flex gap-2">
+        <Button onClick={handleResetView} size="sm" variant="secondary" className="rounded-full p-2">
+          <RotateCw className="h-4 w-4" />
+        </Button>
+        <Button onClick={handleZoomIn} size="sm" variant="secondary" className="rounded-full p-2">
+          <ZoomIn className="h-4 w-4" />
+        </Button>
+        <Button onClick={handleZoomOut} size="sm" variant="secondary" className="rounded-full p-2">
+          <ZoomOut className="h-4 w-4" />
+        </Button>
+      </div>
     </div>
   );
+};
+
+// Camera controller
+const CameraController = () => {
+  const { camera, gl } = useThree();
+  
+  useEffect(() => {
+    camera.position.set(5, 5, 5);
+    camera.lookAt(0, 0, 0);
+  }, [camera]);
+  
+  return <OrbitControls enableDamping dampingFactor={0.1} enableZoom={true} enablePan={true} args={[camera, gl.domElement]} />;
 };
 
 export default SceneViewer;
