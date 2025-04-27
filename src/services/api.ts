@@ -1,4 +1,3 @@
-
 import { ApiResponse, ChatHistoryResponse, ChatMessageResponse, GeneratedScene, HealthResponse, OptimizationResponse } from "@/types/api";
 
 // Original API URL
@@ -60,6 +59,8 @@ async function fetchWithErrorHandling(url: string, options: RequestInit = {}): P
 export async function generateScene(description: string, context: any[] = []): Promise<ApiResponse<GeneratedScene>> {
   const url = createApiUrl('/api/scene/generate');
 
+  console.log("生成场景请求:", { description, context });
+
   return fetchWithErrorHandling(url, {
     method: 'POST',
     body: JSON.stringify({ description, context })
@@ -82,7 +83,7 @@ export async function sendChatMessage(
 ): Promise<ApiResponse<ChatMessageResponse>> {
   const url = createApiUrl('/api/chat/message');
 
-  console.log("尝试发送聊天消息到:", url);
+  console.log("发送聊天消息:", { conversationId, message, context });
 
   return fetchWithErrorHandling(url, {
     method: 'POST',

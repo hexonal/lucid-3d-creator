@@ -1,11 +1,10 @@
-
 import { useState, useEffect, useRef } from 'react';
 import ChatMessage from './ChatMessage';
 import ChatInput from './ChatInput';
 import { Button } from '@/components/ui/button';
 import { RefreshCcw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { sendChatMessage } from '@/services/api';
+import { sendChatMessage, generateScene } from '@/services/api';
 
 interface Message {
   id: string;
@@ -52,7 +51,6 @@ const ChatPanel = ({ onSceneUpdate }: ChatPanelProps) => {
     setIsProcessing(true);
     
     try {
-      // Get previous messages for context (excluding the welcome message)
       const context = messages.length > 1 
         ? messages.slice(1).map(msg => ({
             role: msg.isUser ? 'user' : 'assistant',
@@ -60,30 +58,40 @@ const ChatPanel = ({ onSceneUpdate }: ChatPanelProps) => {
           }))
         : [];
 
-      console.log("发送聊天消息，上下文:", { message, context });
+      // First, try to generate a scene based on the message
+      const sceneResponse = await generateScene(message, context);
       
-      // Use the API service instead of direct fetch
-      const response = await sendChatMessage('default', message, { context });
+      if (sceneResponse.code === 200 && sceneResponse.data?.scene) {
+        console.log("场景生成成功:", sceneResponse.data.scene);
+        // Update the 3D scene if we got a valid scene response
+        if (onSceneUpdate) {
+          onSceneUpdate(sceneResponse.data.scene);
+        }
+      }
+
+      // Then send the chat message
+      const chatResponse = await sendChatMessage('default', message, { 
+        context,
+        generatedScene: sceneResponse.data?.scene 
+      });
       
-      console.log("API 响应:", response);
-      
-      if (!response || response.code !== 200) {
-        throw new Error(`API 返回错误: ${response?.message || '未知错误'}`);
+      if (!chatResponse || chatResponse.code !== 200) {
+        throw new Error(`API 返回错误: ${chatResponse?.message || '未知错误'}`);
       }
       
       // Add the AI response
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
         isUser: false,
-        content: response.data?.response || '服务器返回了空响应',
+        content: chatResponse.data?.response || '服务器返回了空响应',
         timestamp: new Date().toLocaleTimeString()
       };
       
       setMessages((prevMessages) => [...prevMessages, aiResponse]);
       
-      // Update scene if response contains scene data
-      if (onSceneUpdate && response.data?.scene_update) {
-        onSceneUpdate(response.data.scene_update);
+      // Update scene if chat response contains additional scene updates
+      if (onSceneUpdate && chatResponse.data?.scene_update) {
+        onSceneUpdate(chatResponse.data.scene_update);
       }
     } catch (error) {
       console.error('API调用失败:', error);
