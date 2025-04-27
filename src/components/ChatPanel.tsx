@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import ChatMessage from './ChatMessage';
 import ChatInput from './ChatInput';
@@ -48,49 +47,49 @@ const ChatPanel = ({ onSceneUpdate, onLoadingChange }: ChatPanelProps) => {
       content: message,
       timestamp: new Date().toLocaleTimeString()
     };
-    
+
     setMessages((prevMessages) => [...prevMessages, newUserMessage]);
     setIsProcessing(true);
-    
-    // Set loading state for scene generation
+
+    // 设置加载状态，但不清空现有场景
     if (onLoadingChange) {
       onLoadingChange(true);
     }
-    
+
     try {
-      const context = messages.length > 1 
+      const context = messages.length > 1
         ? messages.slice(1).map(msg => ({
-            role: msg.isUser ? 'user' : 'assistant',
-            content: msg.content
-          }))
+          role: msg.isUser ? 'user' : 'assistant',
+          content: msg.content
+        }))
         : [];
 
       // First, try to generate a scene based on the message
       const sceneResponse = await generateScene(message, context);
-      
+
       // Set loading state to false after scene generation completes
       if (onLoadingChange) {
         onLoadingChange(false);
       }
-      
+
       if (sceneResponse.code === 200 && sceneResponse.data?.scene) {
         console.log("场景生成成功:", sceneResponse.data.scene);
-        // Update the 3D scene if we got a valid scene response
+        // 只有在成功生成新场景时才更新3D场景
         if (onSceneUpdate) {
           onSceneUpdate(sceneResponse.data.scene);
         }
       }
 
-      // Then send the chat message
-      const chatResponse = await sendChatMessage('default', message, { 
+      // 然后发送聊天消息
+      const chatResponse = await sendChatMessage('default', message, {
         context,
-        generatedScene: sceneResponse.data?.scene 
+        generatedScene: sceneResponse.data?.scene
       });
-      
+
       if (!chatResponse || chatResponse.code !== 200) {
         throw new Error(`API 返回错误: ${chatResponse?.message || '未知错误'}`);
       }
-      
+
       // Add the AI response
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
@@ -98,21 +97,21 @@ const ChatPanel = ({ onSceneUpdate, onLoadingChange }: ChatPanelProps) => {
         content: chatResponse.data?.response || '服务器返回了空响应',
         timestamp: new Date().toLocaleTimeString()
       };
-      
+
       setMessages((prevMessages) => [...prevMessages, aiResponse]);
-      
-      // Update scene if chat response contains additional scene updates
+
+      // 只有在聊天响应中包含场景更新时才更新场景
       if (onSceneUpdate && chatResponse.data?.scene_update) {
         onSceneUpdate(chatResponse.data.scene_update);
       }
     } catch (error) {
       console.error('API调用失败:', error);
-      
+
       // 确保错误时也重置加载状态
       if (onLoadingChange) {
         onLoadingChange(false);
       }
-      
+
       // Add error message
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -120,9 +119,9 @@ const ChatPanel = ({ onSceneUpdate, onLoadingChange }: ChatPanelProps) => {
         content: '很抱歉，连接服务器时发生错误。请稍后再试。',
         timestamp: new Date().toLocaleTimeString()
       };
-      
+
       setMessages((prevMessages) => [...prevMessages, errorMessage]);
-      
+
       toast({
         title: "连接错误",
         description: "无法连接到场景生成服务器，请检查网络连接。",
@@ -142,19 +141,19 @@ const ChatPanel = ({ onSceneUpdate, onLoadingChange }: ChatPanelProps) => {
         timestamp: new Date().toLocaleTimeString()
       }
     ]);
-    
-    // Reset scene if callback exists
-    if (onSceneUpdate) {
-      onSceneUpdate(null);
-    }
+
+    // 不再清空场景
+    // if (onSceneUpdate) {
+    //   onSceneUpdate(null);
+    // }
   };
 
   return (
     <div className="flex flex-col h-full bg-gray-50 rounded-lg shadow-md overflow-hidden">
       <div className="flex justify-between items-center p-4 border-b border-gray-200">
         <h3 className="text-lg font-medium">场景对话</h3>
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           size="sm"
           onClick={handleResetChat}
           className="text-gray-500 hover:text-sceneflow-primary"
@@ -163,7 +162,7 @@ const ChatPanel = ({ onSceneUpdate, onLoadingChange }: ChatPanelProps) => {
           重置
         </Button>
       </div>
-      
+
       <div className="flex-1 overflow-y-auto p-4 chat-messages-container">
         {messages.map((message) => (
           <ChatMessage
@@ -175,7 +174,7 @@ const ChatPanel = ({ onSceneUpdate, onLoadingChange }: ChatPanelProps) => {
         ))}
         <div ref={messagesEndRef} />
       </div>
-      
+
       <div className="p-4 border-t border-gray-200">
         <ChatInput onSendMessage={handleSendMessage} disabled={isProcessing} />
         {isProcessing && (

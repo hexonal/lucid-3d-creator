@@ -1,17 +1,31 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import SceneViewer from '@/components/SceneViewer';
 import ChatPanel from '@/components/ChatPanel';
 
 const Index = () => {
-  const [currentScene, setCurrentScene] = useState<any>(null);
+  const [currentScene, setCurrentScene] = useState<any>(() => {
+    const savedScene = localStorage.getItem('currentScene');
+    return savedScene ? JSON.parse(savedScene) : null;
+  });
   const [isSceneLoading, setIsSceneLoading] = useState(false);
+
+  useEffect(() => {
+    if (currentScene) {
+      localStorage.setItem('currentScene', JSON.stringify(currentScene));
+    }
+  }, [currentScene]);
+
+  const handleSceneUpdate = (newScene: any) => {
+    if (newScene) {
+      setCurrentScene(newScene);
+    }
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-tr from-gray-50 to-gray-100">
       <Header />
-      
+
       <main className="flex-1 pt-20 px-4 md:px-8 max-w-7xl mx-auto w-full">
         <div className="mb-6 text-center animate-fade-in">
           <h1 className="text-4xl md:text-5xl font-bold mt-4 mb-2">
@@ -21,44 +35,44 @@ const Index = () => {
             AI驱动的3D场景生成系统，通过自然语言对话实现场景设计和生成
           </p>
         </div>
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-8">
           {/* Left Panel - Chat */}
           <div className="lg:col-span-2 h-[500px] md:h-[600px]">
-            <ChatPanel 
-              onSceneUpdate={setCurrentScene} 
+            <ChatPanel
+              onSceneUpdate={handleSceneUpdate}
               onLoadingChange={setIsSceneLoading}
             />
           </div>
-          
+
           {/* Right Panel - 3D Viewer */}
           <div className="lg:col-span-3 h-[500px] md:h-[600px] bg-white rounded-lg shadow-md overflow-hidden">
             <SceneViewer scene={currentScene} isLoading={isSceneLoading} />
           </div>
         </div>
-        
+
         <div className="mb-12">
           <h2 className="text-2xl font-bold mb-4 text-center">主要功能</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <FeatureCard 
-              title="智能场景生成" 
+            <FeatureCard
+              title="智能场景生成"
               description="基于先进AI技术，自动分析用户描述并生成符合要求的3D场景"
-              icon="✨" 
+              icon="✨"
             />
-            <FeatureCard 
-              title="实时3D渲染" 
+            <FeatureCard
+              title="实时3D渲染"
               description="高质量的实时渲染效果，支持PBR材质和灯光系统"
-              icon="🎨" 
+              icon="🎨"
             />
-            <FeatureCard 
-              title="直观交互控制" 
+            <FeatureCard
+              title="直观交互控制"
               description="简单易用的场景控制，支持旋转、缩放、平移等操作"
-              icon="🖱️" 
+              icon="🖱️"
             />
           </div>
         </div>
       </main>
-      
+
       <footer className="bg-sceneflow-dark text-white py-8 px-4">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center">
           <div className="mb-4 md:mb-0">
@@ -68,7 +82,7 @@ const Index = () => {
             </div>
             <p className="text-gray-300 text-sm">AI驱动的3D场景生成系统</p>
           </div>
-          
+
           <div className="flex space-x-6">
             <a href="/about" className="text-gray-300 hover:text-white text-sm">关于我们</a>
             <a href="/privacy" className="text-gray-300 hover:text-white text-sm">隐私政策</a>

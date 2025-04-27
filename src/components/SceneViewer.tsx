@@ -43,21 +43,21 @@ const DynamicScene = ({ scene }) => {
     return <DefaultScene />;
   }
 
-  // TODO: 实现根据 scene 数据动态渲染模型的逻辑
+  // 确保场景数据持久化
   return (
     <Center>
       <group>
         {scene.objects.map((object, index) => (
-          <mesh 
-            key={object.id || index} 
+          <mesh
+            key={object.id || index}
             position={[
-              object.position?.x || 0, 
-              object.position?.y || 0, 
+              object.position?.x || 0,
+              object.position?.y || 0,
               object.position?.z || 0
             ]}
             scale={[
-              object.scale?.x || 1, 
-              object.scale?.y || 1, 
+              object.scale?.x || 1,
+              object.scale?.y || 1,
               object.scale?.z || 1
             ]}
           >
@@ -90,7 +90,7 @@ const SceneControlButtons = ({ onReset, onZoomIn, onZoomOut }) => {
 // THREE.js scene controller - no UI components
 const SceneController = () => {
   const { camera } = useThree();
-  
+
   // Expose functions globally for the UI buttons to call
   useEffect(() => {
     // Define the functions on the window object
@@ -98,15 +98,15 @@ const SceneController = () => {
       camera.position.set(5, 5, 5);
       camera.lookAt(0, 0, 0);
     };
-    
+
     window.zoomIn = () => {
       camera.position.lerp(camera.position.clone().multiplyScalar(0.8), 0.5);
     };
-    
+
     window.zoomOut = () => {
       camera.position.lerp(camera.position.clone().multiplyScalar(1.2), 0.5);
     };
-    
+
     // Clean up when component unmounts
     return () => {
       delete window.resetView;
@@ -114,13 +114,13 @@ const SceneController = () => {
       delete window.zoomOut;
     };
   }, [camera]);
-  
+
   return null; // This component doesn't render anything
 };
 
 const LoadingOverlay = () => {
   const [progress, setProgress] = useState(0);
-  
+
   useEffect(() => {
     const interval = setInterval(() => {
       setProgress((prev) => {
@@ -128,10 +128,10 @@ const LoadingOverlay = () => {
         return prev + 10;
       });
     }, 300);
-    
+
     return () => clearInterval(interval);
   }, []);
-  
+
   return (
     <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm z-10">
       <RefreshCw className="h-10 w-10 text-sceneflow-primary animate-spin mb-4" />
@@ -144,14 +144,24 @@ const LoadingOverlay = () => {
 };
 
 const SceneViewer = ({ scene, isLoading = false }: SceneProps) => {
+  // 保持对当前场景的引用
+  const sceneRef = useRef(scene);
+
+  // 当scene变化时更新引用，但只在有新场景时
+  useEffect(() => {
+    if (scene) {
+      sceneRef.current = scene;
+    }
+  }, [scene]);
+
   const handleResetView = () => {
     window.resetView?.();
   };
-  
+
   const handleZoomIn = () => {
     window.zoomIn?.();
   };
-  
+
   const handleZoomOut = () => {
     window.zoomOut?.();
   };
@@ -159,7 +169,7 @@ const SceneViewer = ({ scene, isLoading = false }: SceneProps) => {
   return (
     <div className="scene-viewer-container relative">
       {isLoading && <LoadingOverlay />}
-      
+
       <Canvas shadows>
         <CameraController />
         <ambientLight intensity={0.5} />
@@ -172,12 +182,13 @@ const SceneViewer = ({ scene, isLoading = false }: SceneProps) => {
         />
         <pointLight position={[-10, -10, -10]} intensity={0.5} />
 
-        <DynamicScene scene={scene} />
+        {/* 使用sceneRef.current确保始终渲染最新的场景 */}
+        <DynamicScene scene={sceneRef.current || scene} />
         <Grid infiniteGrid cellSize={1} sectionSize={3} fadeDistance={50} />
         <Environment preset="city" />
         <OrbitControls />
       </Canvas>
-      
+
       {/* 保持原有的场景控制按钮 */}
       <div className="absolute bottom-4 right-4 flex gap-2">
         <Button onClick={handleResetView} size="sm" variant="secondary" className="rounded-full p-2">
@@ -197,12 +208,12 @@ const SceneViewer = ({ scene, isLoading = false }: SceneProps) => {
 // Camera controller
 const CameraController = () => {
   const { camera, gl } = useThree();
-  
+
   useEffect(() => {
     camera.position.set(5, 5, 5);
     camera.lookAt(0, 0, 0);
   }, [camera]);
-  
+
   return <OrbitControls enableDamping dampingFactor={0.1} enableZoom={true} enablePan={true} args={[camera, gl.domElement]} />;
 };
 
